@@ -116,27 +116,6 @@ vault/
 | Code preserved | 100% |
 | Logic changes | 0% |
 
-## 🔧 What Changed
-
-### Moved Code
-- Authentication → `gateway/middleware.py`
-- Routing → `gateway/routing.py`
-- Security checks → `gateway/context.py`
-- Policies → `policy/engine.py`
-- Audit → `audit/ledger.py`
-- Scanner → `scanner/scanner.py`
-
-### Removed Code
-- Test blocks (`if __name__ == "__main__"`)
-- Demo code snippets
-- Example usage comments
-
-### Added Files
-- `main.py` - Complete FastAPI application
-- `config/security.yaml` - Externalized policies
-- `scanner/cli.py` - CLI interface
-- All `__init__.py` package files
-
 ## 📖 Documentation
 
 ### For Developers
