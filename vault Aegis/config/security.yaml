@@ -1,0 +1,47 @@
+# VAULT Security Configuration
+policies:
+  - name: allow_admin_full
+    role: admin
+    intent: admin
+    allow_tool: true
+    allow_model: true
+    allow_memory: true
+    max_tokens: 4096
+    terminal: true
+
+  - name: restrict_high_risk
+    risk_min: 70
+    allow_tool: false
+    allow_model: false
+    allow_memory: false
+    max_tokens: 512
+    terminal: true
+
+  - name: allow_chat_default
+    intent: chat
+    allow_tool: false
+    allow_model: true
+    allow_memory: false
+    max_tokens: 1024
+
+  - name: allow_summarize
+    intent: summarize
+    allow_tool: false
+    allow_model: true
+    allow_memory: false
+    max_tokens: 2048
+
+  - name: allow_tool_for_user
+    intent: tool
+    role: user
+    risk_max: 60
+    allow_tool: true
+    allow_model: true
+    allow_memory: false
+    max_tokens: 1024
+
+  - name: default_policy
+    allow_tool: false
+    allow_model: true
+    allow_memory: false
+    max_tokens: 1024

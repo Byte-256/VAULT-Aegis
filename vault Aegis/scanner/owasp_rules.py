@@ -1,0 +1,13 @@
+# OWASP API Top 10 2023 Risk mapping
+OWASP_TOP10 = [
+    {"id": "API1:2023", "name": "Broken Object Level Authorization"},
+    {"id": "API2:2023", "name": "Broken Authentication"},
+    {"id": "API3:2023", "name": "Broken Object Property Level Authorization"},
+    {"id": "API4:2023", "name": "Unrestricted Resource Consumption"},
+    {"id": "API5:2023", "name": "Broken Function Level Authorization"},
+    {"id": "API6:2023", "name": "Unrestricted Access to Sensitive Business Flows"},
+    {"id": "API7:2023", "name": "Server Side Request Forgery"},
+    {"id": "API8:2023", "name": "Security Misconfiguration"},
+    {"id": "API9:2023", "name": "Improper Inventory Management"},
+    {"id": "API10:2023", "name": "Unsafe Consumption of APIs"},
+]
