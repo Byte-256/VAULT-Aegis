@@ -1,8 +1,14 @@
-# VAULT API Security - Refactored Codebase
+# VAULT AEGIS
 
-## 📦 Package Contents
+## Description
 
-This package contains the refactored VAULT API Security Gateway codebase, split from a single monolithic file into a well-organized modular structure.
+VAULT Aegis is an AI-aware security gateway designed to protect Generative AI applications from misuse, prompt injection, and API-level threats. It enforces a zero-trust security model by inspecting every request for intent, risk, and policy compliance before allowing interaction with the GenAI backend.
+
+Aegis operates as a mandatory control layer in front of GenAI services, ensuring that raw user prompts never reach the model directly. It applies prompt verification, intent analysis, policy enforcement, rate limiting, response guarding, and audit logging in a single, unified pipeline.
+
+In addition to runtime protection, VAULT Aegis includes an automated API security scanner aligned with OWASP API Security Top 10 risks, enabling proactive detection of misconfigurations and unsafe endpoints during development and CI/CD.
+
+VAULT Aegis is designed to run locally, supports GenAI agents and tools, and prioritizes security correctness, auditability, and fail-closed behavior over convenience.
 
 ## 📁 Files Included
 
