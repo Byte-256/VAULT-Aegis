@@ -38,7 +38,7 @@ STATUS: ✅ COMPLETE
 
 FROM:
 ┌─────────────────────────────────────────────────────────────────┐
-│  API security for VAULT.py (63 KB, 1,510 lines)                 │
+│  API security for py (63 KB, 1,510 lines)                 │
 │  • Monolithic single file                                       │
 │  • Mixed concerns                                               │
 │  • Difficult to test                                            │
@@ -182,13 +182,13 @@ Metrics:
    $ python main.py
 
 2. USE INDIVIDUAL COMPONENTS
-   from vault.gateway.middleware import authenticate_request
-   from vault.gateway.context import prompt_security_check
-   from vault.policy.engine import VaultPolicyEngine
+   from gateway.middleware import authenticate_request
+   from gateway.context import prompt_security_check
+   from policy.engine import VaultPolicyEngine
 
 3. RUN SECURITY SCANNER
-   $ python -m vault.scanner.cli openapi.json
-   $ python -m vault.scanner.cli openapi.json --fail-on-high
+   $ python -m scanner.cli openapi.json
+   $ python -m scanner.cli openapi.json --fail-on-high
 
 4. CONFIGURE POLICIES
    $ vim vault/config/security.yaml

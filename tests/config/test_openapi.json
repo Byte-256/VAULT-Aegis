@@ -1,0 +1,189 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Test API for VAULT Scanner",
+    "version": "1.0.0",
+    "description": "A sample API with intentional vulnerabilities for testing VAULT scanner"
+  },
+  "servers": [
+    {
+      "url": "http://api.example.com",
+      "description": "Insecure HTTP server"
+    },
+    {
+      "url": "https://secure-api.example.com",
+      "description": "Secure HTTPS server"
+    }
+  ],
+  "paths": {
+    "/public/data": {
+      "get": {
+        "summary": "Get public data",
+        "description": "Returns public information",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "description": "Retrieves user information by ID",
+        "security": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User found"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "summary": "List all users (Admin only)",
+        "description": "Returns list of all users",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "List of users"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user (Admin only)",
+        "description": "Deletes a user account",
+        "security": [],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted"
+          }
+        }
+      }
+    },
+    "/upload": {
+      "post": {
+        "summary": "Upload file",
+        "description": "Uploads a file to the server",
+        "security": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully"
+          }
+        }
+      }
+    },
+    "/proxy": {
+      "get": {
+        "summary": "Proxy external URL",
+        "description": "Fetches content from external URL",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "URL to proxy"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Proxied content"
+          }
+        }
+      }
+    },
+    "/internal/system-info": {
+      "get": {
+        "summary": "Get system information",
+        "description": "Returns internal system information",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "System information"
+          }
+        }
+      }
+    },
+    "/api-keys": {
+      "post": {
+        "summary": "Generate new API key",
+        "description": "Creates a new API key",
+        "security": [],
+        "responses": {
+          "201": {
+            "description": "API key created"
+          }
+        }
+      }
+    },
+    "/data/export": {
+      "get": {
+        "summary": "Export all data",
+        "description": "Exports all database data",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Data export"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

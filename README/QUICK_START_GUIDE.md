@@ -33,7 +33,7 @@ FROM python:3.9-slim
 WORKDIR /app
 COPY vault/ /app/vault/
 RUN pip install fastapi uvicorn pyjwt redis pyyaml pydantic
-CMD ["uvicorn", "vault.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 EOF
 
 # Build and run
@@ -46,7 +46,7 @@ docker run -p 8000:8000 vault-gateway
 ### 1. Authentication & Authorization
 
 ```python
-from vault.gateway.middleware import (
+from gateway.middleware import (
     authenticate_request,
     require_roles,
     require_scopes
@@ -71,7 +71,7 @@ async def write_data(auth = Depends(require_scopes("write:data"))):
 ### 2. Prompt Security
 
 ```python
-from vault.gateway.context import (
+from gateway.context import (
     prompt_security_check,
     safe_prompt_forward
 )
@@ -91,7 +91,7 @@ elif result["decision"] == "reject":
 ### 3. Intent Analysis
 
 ```python
-from vault.gateway.context import IntentAnalyzer
+from gateway.context import IntentAnalyzer
 
 analyzer = IntentAnalyzer()
 
@@ -107,7 +107,7 @@ print(f"Reason: {intent_metadata.reason}")
 ### 4. Policy Enforcement
 
 ```python
-from vault.policy.engine import VaultPolicyEngine
+from policy.engine import VaultPolicyEngine
 
 # Load policies
 engine = VaultPolicyEngine("vault/config/security.yaml")
@@ -129,7 +129,7 @@ max_tokens = min(requested_tokens, decision.max_tokens)
 ### 5. Rate Limiting
 
 ```python
-from vault.gateway.context import guard_genai_resource
+from gateway.context import guard_genai_resource
 from fastapi import Request
 
 @app.post("/api/generate")
@@ -145,7 +145,7 @@ async def generate(request: Request):
 ### 6. Audit Logging
 
 ```python
-from vault.audit.ledger import (
+from audit.ledger import (
     audit_log_request,
     audit_log_tool,
     forensic_export
@@ -174,7 +174,7 @@ trail = forensic_export()
 ### 7. Response Filtering
 
 ```python
-from vault.gateway.context import vault_response_guard
+from gateway.context import vault_response_guard
 
 # Guard the response
 response = {
@@ -193,7 +193,7 @@ return {"response": guarded["content"]}
 ### 8. Security Scanner
 
 ```python
-from vault.scanner.scanner import VaultAPIScanner
+from scanner.scanner import VaultAPIScanner
 
 # Load and scan OpenAPI spec
 spec = VaultAPIScanner.load_openapi_from_file("openapi.json")
@@ -328,17 +328,17 @@ Health check
 
 ```bash
 # Basic scan
-python -m vault.scanner.cli openapi.json
+python -m scanner.cli openapi.json
 
 # Save report
-python -m vault.scanner.cli openapi.json --output-json report.json
+python -m scanner.cli openapi.json --output-json report.json
 
 # CI/CD mode (fail on high severity)
-python -m vault.scanner.cli openapi.json --fail-on-high
+python -m scanner.cli openapi.json --fail-on-high
 
 # Environment variable mode
 export VAULT_CI=1
-python -m vault.scanner.cli openapi.json
+python -m scanner.cli openapi.json
 ```
 
 ## Testing

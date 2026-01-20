@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any, List
 
 class TamperResistantLedger:
     """
-    Tamper-resistant, privacy-safe ledger for audit, trust, and forensics in VAULT.
+    Tamper-resistant, privacy-safe ledger for audit, trust, and forensics in 
     Logs event hashes (not raw payloads), decisions, risk, intent, and tool activity.
     """
 

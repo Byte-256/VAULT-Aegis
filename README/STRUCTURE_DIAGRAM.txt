@@ -297,7 +297,7 @@ MODULE SIZE COMPARISON
 =======================
 
 Original File:
-├─ API security for VAULT.py         63,215 bytes (1,510 lines)
+├─ API security for py         63,215 bytes (1,510 lines)
 
 Refactored Files:
 ├─ gateway/middleware.py              4,097 bytes (~120 lines)

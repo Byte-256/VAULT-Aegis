@@ -170,7 +170,7 @@ mypy>=0.950            # Type checking
 
 ### Run Security Scanner
 ```bash
-python -m vault.scanner.cli openapi.json
+python -m scanner.cli openapi.json
 ```
 
 ### Test Authentication
@@ -194,22 +194,22 @@ curl -X POST http://localhost:8000/llm-endpoint \
 ### Import Components
 ```python
 # Authentication
-from vault.gateway.middleware import authenticate_request
+from gateway.middleware import authenticate_request
 
 # Security checks
-from vault.gateway.context import prompt_security_check
+from gateway.context import prompt_security_check
 
 # Policy enforcement
-from vault.policy.engine import VaultPolicyEngine
+from policy.engine import VaultPolicyEngine
 
 # Audit logging
-from vault.audit.ledger import audit_log_request
+from audit.ledger import audit_log_request
 ```
 
 ### Use in Routes
 ```python
 from fastapi import Depends
-from vault.gateway.middleware import authenticate_request
+from gateway.middleware import authenticate_request
 
 @app.post("/api/secure")
 async def secure_route(auth = Depends(authenticate_request)):

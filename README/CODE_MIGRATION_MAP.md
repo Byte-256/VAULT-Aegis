@@ -2,7 +2,7 @@
 
 ## Original File → New Module Mapping
 
-This document shows exactly where each section of the original `API security for VAULT.py` file was moved.
+This document shows exactly where each section of the original `API security for py` file was moved.
 
 ---
 

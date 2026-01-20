@@ -1,0 +1,54 @@
+policies:
+  # Allow full access for administrators
+  - name: allow_admin_full
+    role: admin
+    intent: admin
+    allow_tool: true
+    allow_model: true
+    allow_memory: true
+    max_tokens: 4096
+    terminal: true
+
+  # Restrict high-risk requests regardless of user
+  - name: restrict_high_risk
+    risk_min: 70
+    allow_tool: false
+    allow_model: false
+    allow_memory: false
+    max_tokens: 512
+    terminal: true
+
+  # Allow tool usage for trusted users with moderate risk
+  - name: allow_trusted_user_tools
+    role: trusted_user
+    risk_max: 60
+    allow_tool: true
+    allow_model: true
+    allow_memory: false
+    max_tokens: 3000
+
+  # Allow normal user queries with standard limits
+  - name: allow_user_query
+    role: user
+    intent: chat
+    allow_model: true
+    max_tokens: 2048
+
+  # Allow summarization for all users
+  - name: allow_summarize
+    intent: summarize
+    allow_model: true
+    max_tokens: 1500
+
+  # Restrict tool usage for regular users
+  - name: restrict_user_tools
+    role: user
+    intent: tool
+    allow_tool: false
+    allow_model: true
+    max_tokens: 1024
+
+  # Default policy for unmatched requests
+  - name: default_policy
+    allow_model: true
+    max_tokens: 1024

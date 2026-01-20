@@ -25,7 +25,7 @@ def run_cicd_scan():
     )
     args = parser.parse_args()
 
-    from vault.scanner.scanner import VaultAPIScanner
+    from scanner.scanner import VaultAPIScanner
     report = VaultAPIScanner.quick_scan_file(args.openapi_file)
     high_findings = [
         v for v in report.get("vulnerabilities", [])
@@ -54,7 +54,7 @@ def run_cicd_scan():
 
 # Example CLI entrypoint
 if __name__ == "__main__":
-    from vault.scanner.scanner import VaultAPIScanner
+    from scanner.scanner import VaultAPIScanner
     if len(sys.argv) < 2:
         print("Usage: python cli.py openapi.json")
         print("       python cli.py openapi.json --output-json report.json --fail-on-high")
