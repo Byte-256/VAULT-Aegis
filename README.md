@@ -10,40 +10,7 @@ In addition to runtime protection, VAULT Aegis includes an automated API securit
 
 VAULT Aegis is designed to run locally, supports GenAI agents and tools, and prioritizes security correctness, auditability, and fail-closed behavior over convenience.
 
-## 📁 Files Included
-
-1. **vault_refactored.tar.gz** (17 KB)
-   - Complete refactored codebase
-   - Ready to extract and use
-   - All modules properly organized
-
-2. **REFACTORING_SUMMARY.md**
-   - Detailed overview of the refactoring process
-   - Module breakdown with line counts
-   - Benefits and next steps
-
-3. **CODE_MIGRATION_MAP.md**
-   - Exact mapping of original code to new locations
-   - Line-by-line migration tracking
-   - Import fixes documentation
-
-4. **QUICK_START_GUIDE.md**
-   - Installation instructions
-   - Usage examples for each module
-   - Configuration guide
-   - API endpoint documentation
-   - Troubleshooting tips
-
-5. **FILE_LIST.txt**
-   - Complete list of all files in the refactored codebase
-
 ## 🚀 Quick Start
-
-### Extract the Archive
-```bash
-tar -xzf vault_refactored.tar.gz
-cd vault
-```
 
 ### Install Dependencies
 ```bash
@@ -265,7 +232,5 @@ For issues or questions:
 **Ready for Use**: ✅ Yes
 
 ---
-
-*Refactored: January 12, 2026*  
 *Original Size: 63 KB → New Size: 17 KB (compressed)*  
 *Modules: 1 file → 10 modules + config*
