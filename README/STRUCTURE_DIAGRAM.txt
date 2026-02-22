@@ -1,323 +1,47 @@
-VAULT API Security - Refactored Structure
-==========================================
+VAULT-Aegis Architecture
 
-vault/
-│
-├── main.py                           [FastAPI Application Entry Point]
-│   ├── App initialization
-│   ├── Component setup (analyzer, policy engine, ledger)
-│   ├── /llm-endpoint POST route
-│   ├── /admin/audit-trail GET route
-│   └── /health GET route
-│
-├── gateway/                          [API Gateway & Security Layer]
-│   ├── __init__.py
-│   │
-│   ├── middleware.py                 [Authentication & Authorization]
-│   │   ├── AuthContext class
-│   │   ├── authenticate_request()  → JWT + API Key auth
-│   │   ├── require_roles()         → RBAC decorator
-│   │   └── require_scopes()        → Scope-based access
-│   │
-│   ├── routing.py                    [Request Processing]
-│   │   ├── LLMRequestModel         → Pydantic validation
-│   │   ├── remove_hidden_chars()   → Sanitization
-│   │   └── normalize_and_validate_llm_request()
-│   │
-│   └── context.py                    [Security Context & Checks]
-│       │
-│       ├── [Prompt Security]
-│       │   ├── prompt_security_check()
-│       │   ├── detect_direct_prompt_injection()
-│       │   ├── detect_indirect_prompt_injection()
-│       │   ├── detect_system_override_attempt()
-│       │   └── safe_prompt_forward()
-│       │
-│       ├── [Intent Analysis]
-│       │   ├── IntentAnalyzer class
-│       │   ├── IntentMetadata class
-│       │   └── analyze_intent()
-│       │
-│       ├── [Rate Limiting]
-│       │   ├── check_rate_limit()
-│       │   ├── guard_genai_resource()
-│       │   └── Redis integration
-│       │
-│       ├── [Request Forwarding]
-│       │   └── forward_to_genai_app()
-│       │
-│       └── [Response Guard]
-│           ├── vault_response_guard()
-│           ├── scan_llm_output()
-│           ├── redact_secrets()
-│           └── rewrite_policy_violations()
-│
-├── policy/                           [Policy Engine]
-│   ├── __init__.py
-│   │
-│   └── engine.py                     [Policy Evaluation]
-│       ├── PolicyDecision class
-│       ├── VaultPolicyEngine class
-│       ├── load_policies()         → YAML/JSON loader
-│       └── evaluate()              → Policy enforcement
-│
-├── audit/                            [Audit & Compliance]
-│   ├── __init__.py
-│   │
-│   └── ledger.py                     [Tamper-Resistant Logging]
-│       ├── TamperResistantLedger (Singleton)
-│       ├── log_event()
-│       ├── audit_trail()
-│       ├── verify_integrity()
-│       ├── audit_log_request()
-│       ├── audit_log_tool()
-│       └── forensic_export()
-│
-├── scanner/                          [Security Scanner]
-│   ├── __init__.py
-│   │
-│   ├── scanner.py                    [OWASP API Scanner]
-│   │   ├── VaultAPIScanner class
-│   │   ├── Vulnerability class
-│   │   ├── scan()                  → Main scan orchestrator
-│   │   ├── check_auth()
-│   │   ├── check_authorization()
-│   │   ├── check_rate_limits()
-│   │   ├── check_misconfigurations()
-│   │   ├── check_unsafe_endpoints()
-│   │   ├── check_owasp_top_10_patterns()
-│   │   └── generate_report()
-│   │
-│   ├── owasp_rules.py                [OWASP API Top 10 Definitions]
-│   │   └── OWASP_TOP10 list
-│   │
-│   └── cli.py                        [CLI Interface]
-│       ├── run_cicd_scan()
-│       └── Command-line argument parsing
-│
-└── config/                           [Configuration]
-    ├── __init__.py
-    │
-    └── security.yaml                 [Security Policies]
-        ├── allow_admin_full
-        ├── restrict_high_risk
-        ├── allow_chat_default
-        ├── allow_summarize
-        ├── allow_tool_for_user
-        └── default_policy
-
-
-DATA FLOW DIAGRAM
-==================
-
-Client Request
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     FastAPI Gateway                          │
-│                        (main.py)                             │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              1. Authentication & Authorization               │
-│                  (gateway/middleware.py)                     │
-│   • Validate JWT or API Key                                 │
-│   • Extract user identity, roles, scopes                    │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              2. Request Normalization                        │
-│                  (gateway/routing.py)                        │
-│   • Validate JSON schema                                    │
-│   • Remove hidden characters                                │
-│   • Enforce size limits                                     │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              3. Rate Limiting Check                          │
-│                  (gateway/context.py)                        │
-│   • Check Redis for rate limits                             │
-│   • Per-minute, per-day, burst detection                    │
-│   • Adaptive throttling                                     │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              4. Prompt Security Check                        │
-│                  (gateway/context.py)                        │
-│   • Detect prompt injection                                 │
-│   • Detect jailbreak attempts                               │
-│   • Detect system overrides                                 │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              5. Intent Analysis                              │
-│                  (gateway/context.py)                        │
-│   • Classify intent (chat/tool/admin/etc)                   │
-│   • Calculate risk score                                    │
-│   • Determine confidence                                    │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              6. Policy Evaluation                            │
-│                  (policy/engine.py)                          │
-│   • Load policies from security.yaml                        │
-│   • Match intent, role, scope, risk                         │
-│   • Determine permissions & token limits                    │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              7. Audit Logging (Request)                      │
-│                  (audit/ledger.py)                           │
-│   • Hash request data                                       │
-│   • Log intent, risk, policy decision                       │
-│   • Chain with previous hash                                │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              8. Forward to GenAI Backend                     │
-│                  (gateway/context.py)                        │
-│   • Inject immutable system instructions                    │
-│   • Attach security context                                 │
-│   • Sanitize prompt                                         │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-   [GenAI Model]
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              9. Response Guard                               │
-│                  (gateway/context.py)                        │
-│   • Scan for secrets                                        │
-│   • Scan for policy violations                             │
-│   • Redact/rewrite/block as needed                         │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              10. Audit Logging (Response)                    │
-│                  (audit/ledger.py)                           │
-│   • Hash response data                                      │
-│   • Log tool usage                                          │
-│   • Chain with previous hash                                │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-  Return to Client
-
-
-SECURITY SCANNER WORKFLOW
-==========================
-
-OpenAPI Spec File
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Load OpenAPI Specification                      │
-│                (scanner/scanner.py)                          │
-│   • Support JSON and YAML formats                           │
-│   • Parse spec into dictionary                              │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Static Analysis Checks                          │
-│                (scanner/scanner.py)                          │
-│   ├─ check_auth()               → API2:2023                 │
-│   ├─ check_authorization()      → API1, API5:2023           │
-│   ├─ check_rate_limits()        → API4:2023                 │
-│   ├─ check_misconfigurations()  → API8:2023                 │
-│   ├─ check_unsafe_endpoints()   → API10:2023                │
-│   └─ check_owasp_top_10()       → API7:2023 (SSRF)          │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Generate Vulnerability Report                   │
-│                (scanner/scanner.py)                          │
-│   • Count vulnerabilities by risk level                     │
-│   • Format findings with evidence                           │
-│   • Export to JSON                                          │
-└─────────────────────────────────────────────────────────────┘
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              CI/CD Integration                               │
-│                (scanner/cli.py)                              │
-│   • Write report to file                                    │
-│   • Exit with error code if high-risk found                 │
-│   • Support --fail-on-high flag                             │
-└─────────────────────────────────────────────────────────────┘
-
-
-COMPONENT DEPENDENCIES
-=======================
-
-main.py
-  ├─ depends on → gateway/middleware.py
-  ├─ depends on → gateway/routing.py
-  ├─ depends on → gateway/context.py
-  ├─ depends on → policy/engine.py
-  ├─ depends on → audit/ledger.py
-  └─ depends on → scanner/scanner.py
-
-gateway/middleware.py
-  └─ external → fastapi, jwt
-
-gateway/routing.py
-  └─ external → fastapi, pydantic
-
-gateway/context.py
-  ├─ external → fastapi, redis
-  └─ depends on → None (self-contained)
-
-policy/engine.py
-  └─ external → yaml, json
-
-audit/ledger.py
-  └─ external → hashlib, threading
-
-scanner/scanner.py
-  ├─ depends on → scanner/owasp_rules.py
-  └─ external → json, yaml
-
-scanner/cli.py
-  └─ depends on → scanner/scanner.py
-
-
-MODULE SIZE COMPARISON
-=======================
-
-Original File:
-├─ API security for py         63,215 bytes (1,510 lines)
-
-Refactored Files:
-├─ gateway/middleware.py              4,097 bytes (~120 lines)
-├─ gateway/routing.py                 2,101 bytes (~80 lines)
-├─ gateway/context.py                20,678 bytes (~700 lines)
-├─ policy/engine.py                   4,397 bytes (~130 lines)
-├─ audit/ledger.py                    4,507 bytes (~150 lines)
-├─ scanner/scanner.py                14,235 bytes (~450 lines)
-├─ scanner/owasp_rules.py               744 bytes (~15 lines)
-├─ scanner/cli.py                     2,233 bytes (~70 lines)
-├─ config/security.yaml                 920 bytes (~50 lines)
-├─ main.py                            5,852 bytes (~180 lines)
-└─ __init__.py files (6)                  0 bytes
-
-Total: ~60 KB (1,945 lines including main.py)
-Compressed: 17 KB (tar.gz)
-
-Efficiency Gain:
-- File organization: 1 → 16 files
-- Modularity: Monolithic → Highly modular
-- Testability: Difficult → Easy
-- Maintainability: Low → High
-- Reusability: None → High
+ ┌─────────────────────────────────────────────┐
+ │                  Client                     │
+ └─────────────────────────────────────────────┘
+                     │
+                     ▼
+         ┌────────────────────────────┐
+         │   API Gateway / Router     │
+         └────────────────────────────┘
+                     │
+                     ▼
+         ┌────────────────────────────┐
+         │     PII Sanitizer Layer    │
+         └────────────────────────────┘
+                     │
+                     ▼
+         ┌────────────────────────────┐
+         │   Threat Detection Engine  │
+         │   + Risk Scoring + Policy  │
+         └────────────────────────────┘
+                     │
+                     ▼
+         ┌────────────────────────────┐
+         │      AI Guardrails         │
+         │  Input / Output Filtering  │
+         └────────────────────────────┘
+                     │
+                     ▼
+         ┌────────────────────────────┐
+         │      AI Models (LLM)       │
+         └────────────────────────────┘
+                     │
+                     ▼
+         ┌────────────────────────────┐
+         │        Response Guard      │
+         └────────────────────────────┘
+                     │
+                     ▼
+         ┌────────────────────────────┐
+         │      Audit & Logging       │
+         └────────────────────────────┘
+                     │
+                     ▼
+         ┌────────────────────────────┐
+         │       Streamlit UI         │
+         └────────────────────────────┘
