@@ -35,17 +35,19 @@ from .validators import (
 # Detection Result
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class PIIDetection:
     """A single PII detection result."""
-    pii_type: str           # Key from PII_TYPES (e.g. "EMAIL", "CREDIT_CARD")
-    value: str              # The matched text
-    start: int              # Start index in source text
-    end: int                # End index in source text
-    confidence: float       # 0.0 – 1.0
-    risk_level: RiskLevel   # LOW / MEDIUM / HIGH / CRITICAL
-    category: PIICategory   # personal / financial / auth_secret / confidential
-    label: str = ""         # Human-readable label
+
+    pii_type: str  # Key from PII_TYPES (e.g. "EMAIL", "CREDIT_CARD")
+    value: str  # The matched text
+    start: int  # Start index in source text
+    end: int  # End index in source text
+    confidence: float  # 0.0 – 1.0
+    risk_level: RiskLevel  # LOW / MEDIUM / HIGH / CRITICAL
+    category: PIICategory  # personal / financial / auth_secret / confidential
+    label: str = ""  # Human-readable label
 
     def __post_init__(self):
         info = PII_TYPES.get(self.pii_type, {})
@@ -67,6 +69,7 @@ class PIIDetection:
 # ──────────────────────────────────────────────────────────────────────────────
 # Validator dispatch — maps PII type to its validation function
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _validate_detection(pii_type: str, value: str) -> bool:
     """
@@ -98,30 +101,47 @@ def _validate_detection(pii_type: str, value: str) -> bool:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# NER Module Loader (lazy)
+# NER Module Loader (lazy) - using Microsoft Presidio
 # ──────────────────────────────────────────────────────────────────────────────
 
-_nlp = None
+_presidio_analyzer = None
 
 
-def _get_nlp():
-    """Lazy-load the spaCy NLP model."""
-    global _nlp
-    if _nlp is not None:
-        return _nlp
+def _get_presidio_analyzer():
+    """Lazy-load the Presidio analyzer."""
+    global _presidio_analyzer
+    if _presidio_analyzer is not None:
+        return _presidio_analyzer
     try:
-        import spacy
-        _nlp = spacy.load(NER_MODEL)
-        return _nlp
-    except (ImportError, OSError) as e:
-        # spaCy not installed or model not found — disable NER
-        print(f"[VAULT PII] NER disabled: {e}")
+        from presidio_analyzer import AnalyzerEngine
+
+        _presidio_analyzer = AnalyzerEngine()
+        return _presidio_analyzer
+    except ImportError as e:
+        print(f"[VAULT PII] Presidio not available: {e}")
         return None
+
+
+PRESIDIO_TO_PII = {
+    "EMAIL_ADDRESS": "EMAIL",
+    "PHONE_NUMBER": "PHONE",
+    "US_SSN": "SSN",
+    "US_DRIVER_LICENSE": "DRIVER_LICENSE",
+    "IP_ADDRESS": "IP_ADDRESS",
+    "CREDIT_CARD": "CREDIT_CARD",
+    "DATE_TIME": "DATE",
+    "PERSON": "PERSON_NAME",
+    "ORGANIZATION": "ORG_NAME",
+    "LOCATION": "LOCATION",
+    "IBAN_CODE": "IBAN",
+    "SWIFT_CODE": "SWIFT",
+}
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PIIDetector
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class PIIDetector:
     """
@@ -141,7 +161,8 @@ class PIIDetector:
 
     def detect(self, text: str) -> List[PIIDetection]:
         """
-        Detect all PII in the given text using regex + NER.
+        Detect all PII in the given text using regex only.
+        NER is disabled due to spaCy/pydantic compatibility issues.
 
         Args:
             text: The input text to scan.
@@ -153,10 +174,6 @@ class PIIDetector:
             return []
 
         detections = self._detect_regex(text)
-
-        if self.ner_enabled:
-            ner_detections = self._detect_ner(text)
-            detections.extend(ner_detections)
 
         detections = self._deduplicate(detections)
         detections.sort(key=lambda d: d.start)
@@ -209,28 +226,33 @@ class PIIDetector:
         return results
 
     def _detect_ner(self, text: str) -> List[PIIDetection]:
-        """Run spaCy NER to detect person names, organizations, locations."""
-        nlp = _get_nlp()
-        if nlp is None:
+        """Run Microsoft Presidio NER to detect entities."""
+        analyzer = _get_presidio_analyzer()
+        if analyzer is None:
             return []
 
         results = []
-        doc = nlp(text)
+        try:
+            analysis = analyzer.analyze(
+                text=text, language="en", entities=list(PRESIDIO_TO_PII.keys())
+            )
+        except Exception as e:
+            print(f"[VAULT PII] Presidio analysis failed: {e}")
+            return []
 
-        for ent in doc.ents:
-            pii_type = NER_ENTITY_MAP.get(ent.label_)
+        for ent in analysis:
+            pii_type = PRESIDIO_TO_PII.get(ent.entity_type)
             if pii_type is None:
                 continue
 
             info = PII_TYPES.get(pii_type, {})
-            # NER detections generally have lower confidence than regex
-            confidence = info.get("confidence", 0.5) * 0.85
+            confidence = ent.score * info.get("confidence", 0.5)
 
             detection = PIIDetection(
                 pii_type=pii_type,
                 value=ent.text,
-                start=ent.start_char,
-                end=ent.end_char,
+                start=ent.start,
+                end=ent.end,
                 confidence=round(confidence, 2),
                 risk_level=info.get("risk", RiskLevel.MEDIUM),
                 category=info.get("category", PIICategory.PERSONAL),
