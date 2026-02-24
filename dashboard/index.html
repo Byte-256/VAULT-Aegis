@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAULT Aegis - Secure Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>🛡️ VAULT</h1>
+                <p>Secure AI Gateway</p>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>👤 Login</h3>
+                <div class="form-group">
+                    <input type="text" id="username" placeholder="Username" value="guest">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password">
+                </div>
+                <button class="btn-primary" onclick="login()">Login</button>
+                <div id="login-status" class="status-indicator" style="margin-top: 8px;"></div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>🔐 Security Features</h3>
+                <ul class="feature-list">
+                    <li>🛡️ Prompt Injection Defense</li>
+                    <li>🔍 Intent Analysis & Risk Scoring</li>
+                    <li>⚖️ Policy Engine (RBAC)</li>
+                    <li>🔑 PII Sanitization</li>
+                    <li>📊 Audit Logging</li>
+                    <li>📝 Response Guard</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>🤖 LLM Settings</h3>
+                <div class="form-group">
+                    <label>LM Studio API URL</label>
+                    <input type="text" id="lmstudio-url" placeholder="http://localhost:1234/v1" value="">
+                </div>
+                <div class="form-group">
+                    <label>Model Name</label>
+                    <input type="text" id="model-name" placeholder="e.g., llama-3-8b-instruct" value="">
+                </div>
+                <div id="llm-status" class="status-indicator">Enter URL and model to use real LLM</div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>⚙️ Current User</h3>
+                <div class="user-info">
+                    <span id="current-username">guest</span>
+                    <span id="current-role-badge" class="role-badge guest">GUEST</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
+                    Guest users have limited access. Login as admin to access all features.
+                </p>
+                <button class="btn-secondary" onclick="clearChat()">Clear Chat History</button>
+                <button class="btn-secondary" onclick="logout()" style="margin-top: 8px;">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="chat-panel">
+                <div class="panel-header">
+                    <h2>💬 Secure Chat</h2>
+                    <div class="connection-status">
+                        <span id="api-status" class="status-dot checking"></span>
+                        <span id="api-status-text">Checking API...</span>
+                    </div>
+                </div>
+
+                <div id="chat-messages" class="chat-messages">
+                    <div class="message bot">
+                        <div class="message-content">
+                            <p>Welcome to VAULT Aegis Secure Chat!</p>
+                            <p>Your messages are protected by multiple security layers.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
+                    <button id="send-btn">Send</button>
+                </div>
+
+                <div class="security-toggle">
+                    <label>
+                        <input type="checkbox" id="show-security"> Show Security Analysis
+                    </label>
+                </div>
+            </div>
+
+            <div class="metrics-panel">
+                <div class="panel-header">
+                    <h2>📈 Live Metrics</h2>
+                    <button class="btn-icon" onclick="refreshMetrics()">🔄</button>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-requests">0</div>
+                        <div class="metric-label">Total Requests</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value risk-high" id="high-risk">0</div>
+                        <div class="metric-label">High Risk</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value risk-medium" id="pii-detected">0</div>
+                        <div class="metric-label">PII Detections</div>
+                    </div>
+                </div>
+
+                <div class="panel-header" style="margin-top: 20px;">
+                    <h3>🧪 Test Security</h3>
+                </div>
+
+                <div class="test-buttons">
+                    <button onclick="testSecurity('jailbreak')">🛡️ Test: Jailbreak</button>
+                    <button onclick="testSecurity('pii_email')">📧 Test: Email PII</button>
+                    <button onclick="testSecurity('pii_card')">💳 Test: Credit Card</button>
+                    <button onclick="testSecurity('pii_phone')">📱 Test: Phone</button>
+                    <button onclick="testSecurity('pii_ssn')">🔢 Test: SSN</button>
+                    <button onclick="testSecurity('pii_password')">🔑 Test: Password</button>
+                    <button onclick="testSecurity('pii_multiple')">⚠️ Test: Multiple PII</button>
+                    <button onclick="testSecurity('normal')">✅ Test: Normal</button>
+                    <button onclick="testSecurity('admin')">⚠️ Test: Admin</button>
+                </div>
+
+                <div class="panel-header" style="margin-top: 20px; flex-shrink: 0;">
+                    <h3>🔬 Last Security Analysis</h3>
+                </div>
+
+                <div id="security-analysis" class="analysis-box" style="display: none; flex-shrink: 0;">
+                    <pre id="analysis-content"></pre>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

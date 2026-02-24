@@ -23,6 +23,10 @@ from gateway.context import (
 # Import policy engine
 from policy.engine import VaultPolicyEngine, PolicyDecision
 
+# Import PII sanitizer
+from pii_sanitizer.sanitizer import PIISanitizer
+from pii_sanitizer.config import SanitizeMode
+
 # Import audit ledger
 from audit.ledger import (
     TamperResistantLedger,
@@ -50,6 +54,7 @@ app.add_middleware(
 
 # Initialize components
 intent_analyzer = IntentAnalyzer()
+pii_sanitizer = PIISanitizer(mode=SanitizeMode.MASK)
 
 # Load policy engine (adjust path as needed)
 try:
@@ -73,19 +78,20 @@ async def llm_endpoint(
     Secure LLM endpoint with full VAULT protection:
     - Authentication & Authorization
     - Request validation & normalization
-    - Prompt security check
+    - Prompt security check (injection detection)
+    - PII sanitization
     - Intent analysis
     - Policy enforcement
     - Rate limiting
     - Audit logging
-    - Response filtering
+    - Response filtering (response guard)
     """
 
     try:
         # 1. Rate limiting
         guard_genai_resource(request)
 
-        # 2. Prompt security check
+        # 2. Prompt security check (injection detection)
         prompt_check = prompt_security_check(llm_request.prompt)
         if prompt_check["decision"] != "allow":
             raise HTTPException(
@@ -93,10 +99,15 @@ async def llm_endpoint(
                 detail=f"Prompt security violation: {prompt_check['reason']}",
             )
 
-        # 3. Intent analysis
-        intent_metadata = intent_analyzer.analyze_intent(llm_request.prompt)
+        # 3. PII sanitization
+        pii_result = pii_sanitizer.sanitize(llm_request.prompt)
+        sanitized_prompt = pii_result.sanitized_text
+        pii_detected = pii_result.detections_count > 0
 
-        # 4. Policy evaluation
+        # 4. Intent analysis
+        intent_metadata = intent_analyzer.analyze_intent(sanitized_prompt)
+
+        # 5. Policy evaluation
         policy_decision = None
         if policy_engine:
             policy_decision = policy_engine.evaluate(
@@ -116,7 +127,7 @@ async def llm_endpoint(
             if llm_request.max_tokens > policy_decision.max_tokens:
                 llm_request.max_tokens = policy_decision.max_tokens
 
-        # 5. Audit log request
+        # 6. Audit log request
         audit_log_request(
             request_obj={"prompt": llm_request.prompt, "user": auth.subject},
             intent=intent_metadata.intent.value,
@@ -126,25 +137,25 @@ async def llm_endpoint(
             else "default",
         )
 
-        # 6. Forward to GenAI backend (sanitized)
+        # 7. Forward to GenAI backend (sanitized prompt)
         genai_payload = forward_to_genai_app(
             request,
-            prompt=llm_request.prompt,
+            prompt=sanitized_prompt,
             user_id=auth.subject,
             system_instruction="You are a helpful AI assistant. Follow all safety guidelines.",
             extra_context={"max_tokens": llm_request.max_tokens},
         )
 
-        # 7. Simulate GenAI response (replace with actual GenAI call)
+        # 8. Simulate GenAI response (replace with actual LLM call)
         simulated_response = {
-            "content": "This is a simulated safe response from the GenAI model.",
+            "content": f"This is a simulated safe response from the GenAI model. Your request had a risk score of {intent_metadata.risk_score:.2f}.",
             "tool": None,
         }
 
-        # 8. Response guard
+        # 9. Response guard (filter secrets from response)
         guarded_response = vault_response_guard(simulated_response)
 
-        # 9. Audit log response
+        # 10. Audit log response
         audit_log_tool(
             tool_name="llm_generation",
             request_obj=genai_payload,
@@ -160,6 +171,12 @@ async def llm_endpoint(
             "risk_score": intent_metadata.risk_score,
             "policy": policy_decision.matched_policy if policy_decision else "default",
             "decision": guarded_response["decision"],
+            "pii": {
+                "detected": pii_detected,
+                "count": pii_result.detections_count,
+                "sanitized": pii_result.as_dict(),
+            },
+            "prompt_check": prompt_check,
         }
 
     except HTTPException:
