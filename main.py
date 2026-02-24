@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 
 # Import gateway components
 from gateway.middleware import (
@@ -37,6 +38,14 @@ app = FastAPI(
     title="VAULT - GenAI Secure API Gateway",
     description="A secure, zero-trust GenAI API Gateway enforcing policy and protecting AI requests.",
     version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Initialize components

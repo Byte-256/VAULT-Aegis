@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAULT Aegis - Secure Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>VAULT Aegis</h1>
+            <p class="subtitle">Secure AI Gateway</p>
+        </header>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-label">API Status:</span>
+                <span id="api-status" class="status-value checking">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Connection:</span>
+                <span id="connection-status" class="status-value">-</span>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <div class="message bot">
+                    <div class="message-content">
+                        <p>Welcome to VAULT Aegis Secure Chat!</p>
+                        <p>Your messages are protected by:</p>
+                        <ul>
+                            <li>PII Sanitization</li>
+                            <li>Prompt Injection Defense</li>
+                            <li>Intent Analysis</li>
+                            <li>Risk Scoring</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off">
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+
+        <div class="security-info" id="security-info">
+            <h3>Last Response Security Info</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Intent:</span>
+                    <span id="intent-display" class="info-value">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Risk Score:</span>
+                    <span id="risk-display" class="info-value">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Policy:</span>
+                    <span id="policy-display" class="info-value">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-buttons">
+            <h3>Test Security Features</h3>
+            <button onclick="testPII()">Test PII Detection</button>
+            <button onclick="testJailbreak()">Test Jailbreak Defense</button>
+            <button onclick="testNormal()">Test Normal Query</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
